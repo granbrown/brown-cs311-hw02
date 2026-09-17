@@ -27,12 +27,25 @@ class CircularPlaylist:
     def add_song(self, name: str) -> None:
         """Insert `name` at the end of the circle (its next wraps back to the head)."""
         # TODO
-        raise NotImplementedError
+        new_node = _SongNode(name)
+        if self._current is None:
+            new_node.next = new_node
+            self._current = new_node
+        else:
+            tail = self._current
+            while tail.next is not self._current:
+                tail = tail.next
+            tail.next = new_node
+            new_node.next = self._current
+        self._size += 1
 
     def skip_next(self) -> str:
         """Advance the currently-playing pointer to the next song and return its name."""
         # TODO
-        raise NotImplementedError
+        if self._current is None:
+            raise IndexError("skip_next() called on an empty playlist")
+        self._current = self._current.next
+        return self._current.name
 
     def remove_current(self) -> str:
         """
@@ -40,7 +53,24 @@ class CircularPlaylist:
         advance to the next song, and return the name of the removed song.
         """
         # TODO
-        raise NotImplementedError
+        if self._current is None:
+            raise IndexError("remove_current() called on an empty playlist")
+
+        removed = self._current
+
+        if self._size == 1:
+            self._current = None
+            self._size = 0
+            return removed.name
+
+        prev = self._current
+        while prev.next is not self._current:
+            prev = prev.next
+
+        prev.next = self._current.next
+        self._current = prev.next
+        self._size -= 1
+        return removed.name
 
     def elimination_shuffle(self, k: int) -> List[str]:
         """
@@ -50,4 +80,11 @@ class CircularPlaylist:
         as the final element of the list.
         """
         # TODO
-        raise NotImplementedError
+        result: List[str] = []
+        while self._size > 1:
+            for _ in range(k - 1):
+                self.skip_next()
+            result.append(self.remove_current())
+        if self._current is not None:
+            result.append(self._current.name)
+        return result
